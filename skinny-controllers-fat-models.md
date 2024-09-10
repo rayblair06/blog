@@ -12,6 +12,36 @@ This approach promotes various good practices, such as separation of concerns, r
 
 This approach is commonly found in frameworks that use the Active Record pattern, such as Laravel, because models themselves are responsible for persistence as well as business logic, but this same reasoning could be applied to another layer, such as service-layer, command-layer, domain-layer, etc.
 
-![Skinny Controllers, Fat Models](images/skinny-controllers-fat-models.jpeg)
+<!-- ![Skinny Controllers, Fat Models](images/skinny-controllers-fat-models.jpeg) -->
 
+```php
+// app\Models\Player.php
+class Player extends Model
+{
+    ...
+    public function move(Location $location)
+    {
+        // Do some logic to move player
+    }
 
+    public function move(AttackableObject $object)
+    {
+        // Do some logic to attack object
+    }
+    ...
+}
+
+// app\Http\Controllers\GameController.php
+class GameController extends Controller
+{
+    public function __invoke()
+    {
+        $player = Player::first();
+        $location == Location::first();
+        $enemy = Enemy::first();
+
+        $player->move($location);
+        $player->attack($enemy);
+    }
+}
+```

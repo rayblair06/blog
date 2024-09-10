@@ -15,4 +15,94 @@ Good architecture is crucial for applications of all sizes. Follow me as I explo
 
 Together, these components form a symphony of clean code and architecture, making our application not just a pleasure to work with but also a robust platform ready to scale. 🌟
 
-![Clean Architecture Code](images/clean-architecture.jpeg)
+<!-- ![Clean Architecture Code](images/clean-architecture.jpeg) -->
+
+```php
+// App\Repositories\UserRepository.php
+class UserRepository extends Repository
+{
+    /**
+     * Get users
+     * 
+     * @return array|bool
+     */
+    public function get(): array|bool
+    {
+        return $this
+            ->database
+            ->query('SELECT id, name FROM users')
+            ->get();
+    }
+}
+
+// App\Services\UserService.php
+class UserService
+{
+    /**
+     * @var UserRepository
+     */
+    private UserRepository $user_repo;
+
+    public function __construct(UserRepository $user_repo)
+    {
+        $this->user_repo = $user_repo;
+    }
+
+    /**
+     * Get users
+     * 
+     * @return array<UserDTO>|bool
+     */
+    public function get(): array|bool
+    {
+        $rows = $this->user_repo->get();
+        $results = [];
+
+        if (!$rows) {
+            return false;
+        }
+
+        foreach ($rows as $row) {
+            $result[] = new UserDTO(...$row);
+        }
+
+        return $results;
+    }
+}
+
+// App\DTOs\UserDTO.php
+class UserDTO
+{
+    public function __construct(
+        public readonly int $id,
+        public readonly string $name
+    ) {
+        // ...
+    }
+}
+
+// App\Http\Controllers\UserController.php
+class UserController extends BaseController
+{
+    /**
+     * @var UserService
+     */
+    private UserService $user_service;
+
+    public function __construct(UserService $user_service)
+    {
+        $this->user_service = $user_service;
+    }
+
+    public function __invoke()
+    {
+        $users = $this
+            ->user_service
+            ->get();
+
+        return view('users.view.php', [
+            'users' => $users
+        ]);
+    }
+}
+```
